@@ -60,7 +60,7 @@ class FacialExpressionDetector(threading.Thread):
 		for (x, y) in shape:
 			cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
 
-	def detect_blinks(prev_left_eye, prev_right_eye, current_left_eye, current_right_eye):
+	def detect_blinks(self, prev_left_eye, prev_right_eye, current_left_eye, current_right_eye):
 		prev_space_left = prev_left_eye[2] - prev_left_eye[4]
 		prev_space_right = prev_right_eye[2] - prev_right_eye[4]
 		
@@ -71,11 +71,11 @@ class FacialExpressionDetector(threading.Thread):
 			print("left wink")
 		return current_left_eye, current_right_eye
 
-	def get_left_eye(shape):
+	def get_left_eye(self, shape):
 		left_eye = [shape[37], shape[38], shape[39], shape[40],shape[41],shape[42]]
 		return left_eye
 
-	def get_right_eye(shape):
+	def get_right_eye(self,shape):
 		right_eye = [shape[46], shape[45], shape[44], shape[43],shape[48],shape[47]]
 		return right_eye
 
@@ -155,7 +155,7 @@ class FacialExpressionDetector(threading.Thread):
 			for id_, rect in enumerate(rects_lst):
 				shape = self.predictor(gray_frame, rect)
 				shape = face_utils.shape_to_np(shape)
-
+				shape_blink = shape
 				if rect.left() < 350:
 					id_ = 0
 				else:
@@ -165,9 +165,9 @@ class FacialExpressionDetector(threading.Thread):
 				self.process_face(id_, rect, shape)
 				if prev_left_eye == None:
 					print(shape)
-					prev_left_eye = self.get_left_eye(shape)
-					prev_right_eye = self.get_right_eye(shape)
-				prev_left_eye, prev_right,eye = self.detect_blinks(prev_left_eye, prev_right_eye, self.get_left_eye(shape), self.get_right_eye(shape))
+					prev_left_eye = self.get_left_eye(shape_blink)
+					prev_right_eye = self.get_right_eye(shape_blink)
+				prev_left_eye, prev_right,eye = self.detect_blinks(prev_left_eye, prev_right_eye, self.get_left_eye(shape_blink), self.get_right_eye(shape_blink))
 				if self.stop:
 					raise Exception("You've just wished to kill me. So I did a suicide.")
 
