@@ -60,6 +60,24 @@ class FacialExpressionDetector(threading.Thread):
 		for (x, y) in shape:
 			cv2.circle(frame, (x, y), 1, (0, 0, 255), -1)
 
+	def detect_blinks(prev_left_eye, prev_right_eye, current_left_eye, current_right_eye):
+		prev_space_left = prev_left_eye[2] - prev_left_eye[4]
+		prev_space_right = prev_right_eye[2] - prev_right_eye[4]
+		
+		current_space_left = current_left_eye[2] - current_left_eye[4]
+		current_space_right = current_right_eye[2] - current_right_eye[4]
+
+		if current_left_eye - prev_left_eye:
+			print("left wink")
+		return current_left_eye, current_right_eye
+
+	def get_left_eye(shape):
+		left_eye = [shape[37], shape[38], shape[39], shape[40],shape[41],shape[42]]
+		return left_eye
+
+	def get_right_eye(shape):
+		right_eye = [shape[46], shape[45], shape[44], shape[43],shape[48],shape[47]]
+		return right_eye
 
 	def process_face(self, id_, rect, shape):
 		# Indexing is shifted by one!
@@ -115,7 +133,9 @@ class FacialExpressionDetector(threading.Thread):
 		# initialize the video stream and start the camera
 		print("[INFO] camera starting up...")
 		vs = VideoStream(0).start()
-
+		#used to store the previous eye state for blink detection
+		prev_left_eye = None
+		prev_right_eye = None
 		# loop over the frames from the video stream
 		while True:
 			# grab the frame from the threaded video stream, resize it to
@@ -143,7 +163,11 @@ class FacialExpressionDetector(threading.Thread):
 
 				self.draw_face(id_, rect, frame, shape)
 				self.process_face(id_, rect, shape)
-
+				if prev_left_eye == None:
+					print(shape)
+					prev_left_eye = self.get_left_eye(shape)
+					prev_right_eye = self.get_right_eye(shape)
+				prev_left_eye, prev_right,eye = self.detect_blinks(prev_left_eye, prev_right_eye, self.get_left_eye(shape), self.get_right_eye(shape))
 				if self.stop:
 					raise Exception("You've just wished to kill me. So I did a suicide.")
 
